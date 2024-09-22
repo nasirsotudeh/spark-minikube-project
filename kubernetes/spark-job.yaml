@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pyspark-job
+spec:
+  template:
+    spec:
+      serviceAccountName: spark
+      containers:
+      - name: pyspark-container
+        image: spark-minikube:latest  # This will use the image you build
+        imagePullPolicy: IfNotPresent
+        command: ["/opt/spark/bin/spark-submit"]
+        args:
+          - --master
+          - k8s://https://$(KUBERNETES_SERVICE_HOST):443
+          - --deploy-mode
+          - cluster
+          - --name
+          - pyspark-job
+          - /opt/spark/src/simple_spark_job.py
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1"
+      restartPolicy: Never
+  backoffLimit: 4
